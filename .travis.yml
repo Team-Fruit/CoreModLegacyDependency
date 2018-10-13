@@ -1,0 +1,38 @@
+language: java
+jdk: oraclejdk8
+branches:
+  except:
+    - /^build@.*/
+before_install:
+  - "VERSIONVAL=unknown; if [ -n \"${TRAVIS_TAG}\" ]; then VERSIONVAL=${TRAVIS_TAG}; elif [ -n \"${TRAVIS_BUILD_NUMBER}\" ]; then VERSIONVAL=r${TRAVIS_BUILD_NUMBER}; fi; sed -e s%@VERSION@%${VERSIONVAL}% pom.travis.xml > pom.xml"
+install:
+  - mvn clean install
+cache:
+  directories:
+    - .autoconf
+    - $HOME/.m2
+notifications:
+  email: false
+before_deploy:
+  - git config --global user.email "builds@travis-ci.com"
+  - git config --global user.name "Travis CI"
+  - export GIT_TAG=build@${TRAVIS_BRANCH}#${TRAVIS_BUILD_NUMBER}
+  - git tag ${GIT_TAG} -a -m "Generated tag from TravisCI build ${TRAVIS_BUILD_NUMBER}"
+  - git push --quiet https://${GITHUB_TOKEN}@github.com/Team-Fruit/CoreModLegacyDependency ${GIT_TAG} > /dev/null 2>&1
+deploy:
+  - provider: releases
+    prerelease: true
+    api_key: ${GITHUB_TOKEN}
+    file_glob: true
+    file: target/*.jar
+    skip_cleanup: true
+    on:
+      all_branches: true
+      tags: false
+      condition: '! "$TRAVIS_BRANCH" =~ ^(dev\\-|feature\\/).*$'
+  - provider: script
+    skip_cleanup: true
+    script: "mvn deploy -Dmy.version=${TRAVIS_TAG} --settings settings.xml"
+    on:
+      all_branches: true
+      tags: true
