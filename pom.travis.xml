@@ -21,6 +21,9 @@
 		<bintray.subject>team-fruit</bintray.subject>
 		<bintray.repo>mods</bintray.repo>
 		<bintray.package>CoreModLegacyDependency</bintray.package>
+		<java.version>1.8</java.version>
+		<maven.compiler.target>${java.version}</maven.compiler.target>
+		<maven.compiler.source>${java.version}</maven.compiler.source>
 	</properties>
 
 	<!-- Travis用にはpom.travis.xmlを変更すること！ -->
